@@ -1,6 +1,7 @@
 """Spawns claude -p research sessions."""
 
 import asyncio
+import hashlib
 import logging
 import os
 import re
@@ -12,8 +13,16 @@ log = logging.getLogger("research")
 
 
 def sanitize_filename(title: str) -> str:
-    """Convert a title to a safe filename."""
+    """Convert a title to a safe filename.
+
+    For titles with mostly non-ASCII characters (e.g. Chinese),
+    falls back to a short hash to avoid empty or colliding names.
+    """
     name = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    if len(name) < 4:
+        # Title was mostly non-ASCII; use hash prefix + whatever ASCII we got
+        hash_prefix = hashlib.md5(title.encode()).hexdigest()[:10]
+        name = f"{hash_prefix}-{name}" if name else hash_prefix
     return name[:80]
 
 
@@ -51,10 +60,15 @@ async def run_research(
     if proc.returncode != 0:
         log.error("%s Failed (exit %d, %.1fs)", tag, proc.returncode, elapsed)
         return {"title": title, "filename": filename, "success": False,
-                "elapsed": elapsed, "error": stderr.decode()[:500]}
+                "elapsed": elapsed, "error": stderr.decode("utf-8", errors="replace")[:500]}
 
-    markdown = stdout.decode().strip()
+    markdown = stdout.decode("utf-8", errors="replace").strip()
     log.info("%s Done in %.1fs (%d bytes)", tag, elapsed, len(markdown))
+
+    if not markdown:
+        log.error("%s Empty output after decode/strip", tag)
+        return {"title": title, "filename": filename, "success": False,
+                "elapsed": elapsed, "error": "empty output"}
 
     os.makedirs(output_dir, exist_ok=True)
     with open(filepath, "w", encoding="utf-8") as f:

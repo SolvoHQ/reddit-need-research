@@ -21,6 +21,18 @@ def test_sanitize_unicode():
     assert sanitize_filename("Müller's café tool") == "m-ller-s-caf-tool"
 
 
+def test_sanitize_chinese_title():
+    result = sanitize_filename("有没有漫画管理的推荐")
+    assert len(result) >= 4  # should use hash fallback
+    assert result  # not empty
+
+
+def test_sanitize_chinese_with_ascii():
+    result = sanitize_filename("有没有 App 帮助从多张相似照片中选出最佳？")
+    assert len(result) >= 4  # "app" alone is < 4, so hash fallback kicks in
+    assert "app" in result
+
+
 def test_run_research_success(tmp_path):
     record = {"title": "Test Post", "url": "https://reddit.com/test"}
     mock_proc = AsyncMock()
