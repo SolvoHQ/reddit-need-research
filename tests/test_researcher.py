@@ -36,7 +36,8 @@ def test_sanitize_chinese_with_ascii():
 def test_run_research_success(tmp_path):
     import json as _json
     record = {"title": "Test Post", "url": "https://reddit.com/test"}
-    json_output = _json.dumps({"result": "# Report\nContent here", "type": "result"}).encode()
+    long_report = "# Report\n" + "Content here. " * 200  # >1KB
+    json_output = _json.dumps({"result": long_report, "type": "result"}).encode()
     mock_proc = AsyncMock()
     mock_proc.returncode = 0
     mock_proc.communicate = AsyncMock(return_value=(json_output, b""))
@@ -46,7 +47,7 @@ def test_run_research_success(tmp_path):
 
     assert result["success"] is True
     assert result["title"] == "Test Post"
-    assert (tmp_path / "test-post.md").read_text() == "# Report\nContent here"
+    assert (tmp_path / "test-post.md").read_text() == long_report.strip()
 
 
 def test_run_research_failure(tmp_path):
@@ -75,4 +76,4 @@ def test_run_research_empty_result(tmp_path):
         result = asyncio.run(run_research(record, str(tmp_path), "claude-opus-4-6", 600))
 
     assert result["success"] is False
-    assert "empty" in result["error"]
+    assert "too short" in result["error"]

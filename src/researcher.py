@@ -12,6 +12,8 @@ from src.prompt import build_research_prompt
 
 log = logging.getLogger("research")
 
+MIN_REPORT_SIZE = 1024  # minimum bytes for a valid report
+
 
 def sanitize_filename(title: str) -> str:
     """Convert a title to a safe filename.
@@ -27,20 +29,8 @@ def sanitize_filename(title: str) -> str:
     return name[:80]
 
 
-async def run_research(
-    record: dict,
-    output_dir: str,
-    model: str,
-    timeout: int,
-) -> dict:
-    """Run a single research session. Returns result metadata dict."""
-    title = record.get("title", "untitled")
-    filename = sanitize_filename(title) + ".md"
-    filepath = os.path.join(output_dir, filename)
-    tag = f"[{title[:40]}]"
-
-    prompt = build_research_prompt(record)
-    log.info("%s Starting research...", tag)
+async def _run_claude(prompt: str, model: str, timeout: int, tag: str) -> tuple[str, float, str | None]:
+    """Run a single claude -p session. Returns (markdown, elapsed, error)."""
     t0 = time.monotonic()
 
     try:
@@ -52,16 +42,12 @@ async def run_research(
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
     except asyncio.TimeoutError:
         elapsed = time.monotonic() - t0
-        log.error("%s Timed out after %.1fs", tag, elapsed)
-        return {"title": title, "filename": filename, "success": False,
-                "elapsed": elapsed, "error": "timeout"}
+        return "", elapsed, "timeout"
 
     elapsed = time.monotonic() - t0
 
     if proc.returncode != 0:
-        log.error("%s Failed (exit %d, %.1fs)", tag, proc.returncode, elapsed)
-        return {"title": title, "filename": filename, "success": False,
-                "elapsed": elapsed, "error": stderr.decode("utf-8", errors="replace")[:500]}
+        return "", elapsed, stderr.decode("utf-8", errors="replace")[:500]
 
     # Parse JSON output and extract the result text
     raw = stdout.decode("utf-8", errors="replace")
@@ -71,16 +57,65 @@ async def run_research(
     except json.JSONDecodeError:
         # Fallback: treat as plain text
         markdown = raw.strip()
-    log.info("%s Done in %.1fs (%d bytes)", tag, elapsed, len(markdown))
 
-    if not markdown:
-        log.error("%s Empty output after decode/strip", tag)
-        return {"title": title, "filename": filename, "success": False,
-                "elapsed": elapsed, "error": "empty output"}
+    return markdown, elapsed, None
 
-    os.makedirs(output_dir, exist_ok=True)
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(markdown)
 
-    return {"title": title, "filename": filename, "success": True,
-            "elapsed": elapsed, "error": None}
+async def run_research(
+    record: dict,
+    output_dir: str,
+    model: str,
+    timeout: int,
+) -> dict:
+    """Run a single research session with auto-retry on short output."""
+    title = record.get("title", "untitled")
+    filename = sanitize_filename(title) + ".md"
+    filepath = os.path.join(output_dir, filename)
+    tag = f"[{title[:40]}]"
+
+    prompt = build_research_prompt(record)
+    max_attempts = 2
+    total_elapsed = 0
+
+    for attempt in range(1, max_attempts + 1):
+        if attempt > 1:
+            log.info("%s Retry attempt %d (previous output too short)", tag, attempt)
+
+        log.info("%s Starting research...", tag)
+        markdown, elapsed, error = await _run_claude(prompt, model, timeout, tag)
+        total_elapsed += elapsed
+
+        if error:
+            log.error("%s Failed: %s (%.1fs)", tag, error, elapsed)
+            if attempt < max_attempts:
+                continue
+            return {"title": title, "filename": filename, "success": False,
+                    "elapsed": total_elapsed, "error": error}
+
+        log.info("%s Done in %.1fs (%d bytes)", tag, elapsed, len(markdown))
+
+        if len(markdown) < MIN_REPORT_SIZE:
+            log.warning("%s Output too short (%d bytes < %d), %s",
+                        tag, len(markdown), MIN_REPORT_SIZE,
+                        "retrying..." if attempt < max_attempts else "giving up")
+            if attempt < max_attempts:
+                continue
+            # Last attempt: save whatever we got but mark as failed
+            if markdown:
+                os.makedirs(output_dir, exist_ok=True)
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write(markdown)
+            return {"title": title, "filename": filename, "success": False,
+                    "elapsed": total_elapsed, "error": f"output too short ({len(markdown)} bytes)"}
+
+        # Success: write the report
+        os.makedirs(output_dir, exist_ok=True)
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(markdown)
+
+        return {"title": title, "filename": filename, "success": True,
+                "elapsed": total_elapsed, "error": None}
+
+    # Should not reach here, but just in case
+    return {"title": title, "filename": filename, "success": False,
+            "elapsed": total_elapsed, "error": "unexpected end of retry loop"}
