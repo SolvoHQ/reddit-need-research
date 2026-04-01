@@ -7,90 +7,90 @@ def build_research_prompt(record: dict) -> str:
     """Build the deep research prompt for a single need signal."""
     record_json = json.dumps(record, indent=2)
 
-    return f"""You are a market research analyst. You've received a product need signal found on Reddit. Your job is NOT to summarize the Reddit post -- it is to investigate the MARKET PROBLEM this signal reveals.
+    return f"""你是一位市场研究分析师。你收到了一条来自 Reddit 的产品需求信号。你的任务不是总结这个帖子——而是调查这个信号背后揭示的市场问题。
 
-## Input Signal
+## 输入信号
 
 ```json
 {record_json}
 ```
 
-## Research Mission
+## 研究任务
 
-This Reddit post is one data point. Investigate the broader market reality behind it. Use web search extensively for every section.
+这条 Reddit 帖子只是一个数据点。请调查它背后更广泛的市场现实。每个章节都必须大量使用 web search。
 
-### Phase 1: Decode the Real Need
-- What job is the user actually trying to get done? (Jobs-to-be-Done framework)
-- What are the functional, emotional, and social dimensions of this need?
-- Who else has this problem? What adjacent user segments share this pain?
-- Is this a "vitamin" (nice to have) or "painkiller" (must solve)?
+### 阶段一：解码真实需求
+- 用户真正想完成什么工作？（Jobs-to-be-Done 框架）
+- 这个需求的功能性、情感性和社交性维度是什么？
+- 还有谁有这个问题？哪些相邻的用户群体也有这个痛点？
+- 这是"维生素"（锦上添花）还是"止痛药"（必须解决）？
 
-### Phase 2: Market Landscape
-Use web search to find:
-- What products/tools currently serve this need? (Go beyond what the post mentions)
-- How do existing solutions fall short? What gaps remain?
-- Pricing landscape (free tier, paid, enterprise)
-- Recent entrants or emerging solutions (search "best [category] 2025/2026", "alternatives to [competitor]")
-- What do review sites (G2, Capterra, Product Hunt) say?
+### 阶段二：市场格局
+使用 web search 调查：
+- 目前有哪些产品/工具在服务这个需求？（不要局限于帖子提到的）
+- 现有方案的不足在哪里？还有什么空白？
+- 定价格局（免费版、付费版、企业版）
+- 最近的新进入者或新兴解决方案（搜索"best [category] 2025/2026"、"alternatives to [competitor]"）
+- 评测网站（G2、Capterra、Product Hunt）怎么说？
 
-### Phase 3: Opportunity Analysis
-- Market size signals: how many people/businesses have this problem?
-- Willingness to pay: what do people currently spend on adjacent solutions?
-- Switching costs: how hard is it to leave current solutions?
-- Defensibility: could a new entrant build a moat?
-- Timing: why now? What trends make this solvable today?
+### 阶段三：机会分析
+- 市场规模信号：有多少人/企业有这个问题？
+- 付费意愿：人们目前在相邻方案上花多少钱？
+- 切换成本：离开现有方案有多难？
+- 可防御性：新进入者能建立护城河吗？
+- 时机：为什么是现在？什么趋势让这个问题今天可以被解决？
 
-### Phase 4: Divergent Insights
-Think beyond the obvious:
-- Broader market shifts or behavioral changes this reveals
-- Underserved niches within the broader market
-- Opportunities for a different business model (not just another SaaS)
-- Potential for a "wedge" product that starts here but expands
-- Adjacent problems the same user likely has
+### 阶段四：发散性洞察
+超越显而易见的思考：
+- 这揭示了哪些更广泛的市场变化或行为变化？
+- 更大市场中有哪些被忽视的细分群体？
+- 除了"又一个 SaaS"之外，还有什么不同的商业模式机会？
+- 是否有潜力做一个"楔子产品"，从这里切入然后扩展？
+- 同一用户群体可能还有哪些相邻问题？
 
-## Output Requirements
+## 输出要求
 
-You MUST write a COMPLETE, DETAILED report following EVERY section below. Each section must contain multiple paragraphs with specific findings from your web research. Do NOT summarize everything into one paragraph. The report should be 1500-3000 words.
+你必须用中文撰写一份完整、详细的报告，严格按照以下每个章节输出。每个章节必须包含多个段落和来自 web search 的具体发现。不要把所有内容压缩成一段话。报告应在 1500-3000 字之间。
 
-Write the report in this EXACT structure:
+严格按以下结构输出：
 
-# [Descriptive title about the market problem, NOT the Reddit post title]
+# [关于市场问题的描述性标题，不要用 Reddit 帖子的原标题]
 
-## Signal Summary
-> One paragraph: original signal + what market problem it points to.
+## 信号摘要
+> 一段话：原始信号 + 它指向什么市场问题。
 
-## The Real Need
-Write 2-3 paragraphs covering:
-- Jobs to be done analysis (functional, emotional, social dimensions)
-- User segments affected (be specific: who are these people?)
-- Pain severity assessment (1-10 with detailed justification)
+## 真实需求
+写 2-3 段，涵盖：
+- Jobs to be done 分析（功能性、情感性、社交性维度）
+- 受影响的用户群体（具体描述：这些人是谁？）
+- 痛点严重程度评估（1-10 分，附详细理由）
 
-## Market Landscape
-Create a table with AT LEAST 5 solutions found via web search:
+## 市场格局
+通过 web search 创建一个至少包含 5 个解决方案的表格：
 
-| Solution | Category | Pricing | Key Limitation |
-|----------|----------|---------|----------------|
-| (fill in) | | | |
+| 解决方案 | 类别 | 定价 | 核心局限 |
+|----------|------|------|----------|
+| （填写） | | | |
 
-### Gaps in Current Solutions
-Write 2-3 paragraphs about what no existing solution does well.
+### 现有方案的空白
+写 2-3 段，说明目前没有哪个方案做得好的地方。
 
-## Opportunity Assessment
-- **Market Size**: [estimate with reasoning, cite sources]
-- **Willingness to Pay**: [evidence from research]
-- **Competition Intensity**: Low / Medium / High with detailed reasoning
-- **Timing**: Why now? What trends enable this?
-- **Verdict**: [2-3 sentence assessment: is this worth pursuing for an indie developer?]
+## 机会评估
+- **市场规模**：[估算及推理，引用来源]
+- **付费意愿**：[来自调研的证据]
+- **竞争强度**：低 / 中 / 高，附详细理由
+- **时机**：为什么是现在？什么趋势在推动？
+- **结论**：[2-3 句评估：这对独立开发者来说值得做吗？]
 
-## Divergent Insights
-Write 3-5 non-obvious observations. Each should be a paragraph explaining a creative angle or insight that isn't immediately apparent from the surface-level request.
+## 发散性洞察
+写 3-5 个非显而易见的观察。每个应该是一段话，解释一个从表面请求中不容易看出的创造性角度或洞察。
 
-## Key Sources
-List every URL you consulted during research as a bulleted list.
+## 关键来源
+以项目符号列表形式列出你在研究中查阅的每个 URL。
 
 ---
-CRITICAL INSTRUCTIONS:
-1. Use web search for EVERY section. Every claim must be backed by research you actually did.
-2. The report MUST include ALL sections above with substantive content in each.
-3. Do NOT compress your findings into a brief summary. Write the FULL detailed report.
-4. The Reddit post is a starting point, not the answer. Your value is the RESEARCH you do beyond it."""
+关键指令：
+1. 每个章节都必须使用 web search。每个论断必须有你实际做过的调研支撑。
+2. 报告必须包含上述所有章节，每个章节都要有实质性内容。
+3. 不要把你的发现压缩成简短摘要。写出完整详细的报告。
+4. Reddit 帖子只是起点，不是答案。你的价值在于你在它之外做的调研。"""
