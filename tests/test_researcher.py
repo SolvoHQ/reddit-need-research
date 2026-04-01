@@ -34,10 +34,12 @@ def test_sanitize_chinese_with_ascii():
 
 
 def test_run_research_success(tmp_path):
+    import json as _json
     record = {"title": "Test Post", "url": "https://reddit.com/test"}
+    json_output = _json.dumps({"result": "# Report\nContent here", "type": "result"}).encode()
     mock_proc = AsyncMock()
     mock_proc.returncode = 0
-    mock_proc.communicate = AsyncMock(return_value=(b"# Report\nContent here", b""))
+    mock_proc.communicate = AsyncMock(return_value=(json_output, b""))
 
     with patch("src.researcher.asyncio.create_subprocess_exec", return_value=mock_proc):
         result = asyncio.run(run_research(record, str(tmp_path), "claude-opus-4-6", 600))
@@ -59,3 +61,18 @@ def test_run_research_failure(tmp_path):
     assert result["success"] is False
     assert "error msg" in result["error"]
     assert not (tmp_path / "fail-post.md").exists()
+
+
+def test_run_research_empty_result(tmp_path):
+    import json as _json
+    record = {"title": "Empty Post"}
+    json_output = _json.dumps({"result": "", "type": "result"}).encode()
+    mock_proc = AsyncMock()
+    mock_proc.returncode = 0
+    mock_proc.communicate = AsyncMock(return_value=(json_output, b""))
+
+    with patch("src.researcher.asyncio.create_subprocess_exec", return_value=mock_proc):
+        result = asyncio.run(run_research(record, str(tmp_path), "claude-opus-4-6", 600))
+
+    assert result["success"] is False
+    assert "empty" in result["error"]

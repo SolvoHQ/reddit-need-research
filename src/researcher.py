@@ -2,6 +2,7 @@
 
 import asyncio
 import hashlib
+import json
 import logging
 import os
 import re
@@ -44,7 +45,7 @@ async def run_research(
 
     try:
         proc = await asyncio.create_subprocess_exec(
-            "claude", "-p", "--model", model, prompt,
+            "claude", "-p", "--output-format", "json", "--model", model, prompt,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -62,7 +63,14 @@ async def run_research(
         return {"title": title, "filename": filename, "success": False,
                 "elapsed": elapsed, "error": stderr.decode("utf-8", errors="replace")[:500]}
 
-    markdown = stdout.decode("utf-8", errors="replace").strip()
+    # Parse JSON output and extract the result text
+    raw = stdout.decode("utf-8", errors="replace")
+    try:
+        data = json.loads(raw)
+        markdown = data.get("result", "").strip()
+    except json.JSONDecodeError:
+        # Fallback: treat as plain text
+        markdown = raw.strip()
     log.info("%s Done in %.1fs (%d bytes)", tag, elapsed, len(markdown))
 
     if not markdown:
