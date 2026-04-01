@@ -48,7 +48,11 @@ Think beyond the obvious:
 - Potential for a "wedge" product that starts here but expands
 - Adjacent problems the same user likely has
 
-## Output Format
+## Output Requirements
+
+You MUST write a COMPLETE, DETAILED report following EVERY section below. Each section must contain multiple paragraphs with specific findings from your web research. Do NOT summarize everything into one paragraph. The report should be 1500-3000 words.
+
+Write the report in this EXACT structure:
 
 # [Descriptive title about the market problem, NOT the Reddit post title]
 
@@ -56,27 +60,37 @@ Think beyond the obvious:
 > One paragraph: original signal + what market problem it points to.
 
 ## The Real Need
-- Jobs to be done analysis
-- User segments affected
-- Pain severity (1-10 with justification)
+Write 2-3 paragraphs covering:
+- Jobs to be done analysis (functional, emotional, social dimensions)
+- User segments affected (be specific: who are these people?)
+- Pain severity assessment (1-10 with detailed justification)
 
 ## Market Landscape
+Create a table with AT LEAST 5 solutions found via web search:
+
 | Solution | Category | Pricing | Key Limitation |
 |----------|----------|---------|----------------|
+| (fill in) | | | |
 
 ### Gaps in Current Solutions
+Write 2-3 paragraphs about what no existing solution does well.
 
 ## Opportunity Assessment
-- **Market Size**: [estimate with reasoning]
+- **Market Size**: [estimate with reasoning, cite sources]
 - **Willingness to Pay**: [evidence from research]
-- **Competition Intensity**: Low / Medium / High with reasoning
-- **Timing**: Why now?
-- **Verdict**: [1-2 sentence: worth pursuing?]
+- **Competition Intensity**: Low / Medium / High with detailed reasoning
+- **Timing**: Why now? What trends enable this?
+- **Verdict**: [2-3 sentence assessment: is this worth pursuing for an indie developer?]
 
 ## Divergent Insights
+Write 3-5 non-obvious observations. Each should be a paragraph explaining a creative angle or insight that isn't immediately apparent from the surface-level request.
 
 ## Key Sources
-(URLs consulted during research)
+List every URL you consulted during research as a bulleted list.
 
 ---
-IMPORTANT: Use web search for EVERY section. Every claim should be backed by research, not just inferred from the Reddit post. The post is a starting point, not the answer."""
+CRITICAL INSTRUCTIONS:
+1. Use web search for EVERY section. Every claim must be backed by research you actually did.
+2. The report MUST include ALL sections above with substantive content in each.
+3. Do NOT compress your findings into a brief summary. Write the FULL detailed report.
+4. The Reddit post is a starting point, not the answer. Your value is the RESEARCH you do beyond it."""
