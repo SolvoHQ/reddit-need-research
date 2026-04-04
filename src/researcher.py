@@ -94,6 +94,12 @@ async def run_research(
 
         log.info("%s Done in %.1fs (%d bytes)", tag, elapsed, len(markdown))
 
+        # Strip chain-of-thought leakage before the first heading
+        heading_pos = markdown.find("# ")
+        if heading_pos > 0:
+            log.debug("%s Stripped %d bytes of pre-heading text", tag, heading_pos)
+            markdown = markdown[heading_pos:]
+
         if len(markdown) < MIN_REPORT_SIZE:
             log.warning("%s Output too short (%d bytes < %d), %s",
                         tag, len(markdown), MIN_REPORT_SIZE,
